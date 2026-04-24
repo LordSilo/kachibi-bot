@@ -1,7 +1,7 @@
 require('dotenv').config();
 
 const { Telegraf, session } = require('telegraf');
-const { createCanvas, loadImage } = require('canvas');
+const { createCanvas, loadImage } = require('@napi-rs/canvas');
 const fs = require('fs');
 const path = require('path');
 
