@@ -20,7 +20,7 @@ const templates = {
 };
 
 function getUser(id, name) {
-  if (!users.has(id)) users.set(id, { id, name, xp: 0 });
+  if (!users.has(id)) users.set(id, { id, name, xp: 0, lastClaim: 0 });
   return users.get(id);
 }
 
@@ -51,13 +51,31 @@ bot.start((ctx) => {
 });
 
 bot.command('missions', (ctx) => {
-  ctx.reply('🔥 Daily Mission:\n1. Like post\n2. Repost\n3. Comment KACHIBI\n4. Invite friends\nUse /done when finished');
+  const u = getUser(ctx.from.id, ctx.from.first_name);
+  const now = Date.now();
+  const cooldown = 24 * 60 * 60 * 1000;
+  const elapsed = now - (u.lastClaim || 0);
+  const ready = elapsed >= cooldown;
+  const status = ready
+    ? '✅ Ready to claim! Use /done after completing.'
+    : (() => { const r = cooldown - elapsed; const h = Math.floor(r/3600000); const m = Math.floor((r%3600000)/60000); return `⏳ Next claim in ${h}h ${m}m`; })();
+  ctx.reply(`🔥 Daily Missions:\n1. Like the latest post\n2. Repost\n3. Comment KACHIBI\n4. Invite 2 friends\n\n${status}`);
 });
 
 bot.command('done', (ctx) => {
   const u = getUser(ctx.from.id, ctx.from.first_name);
+  const now = Date.now();
+  const cooldown = 24 * 60 * 60 * 1000; // 24 hours in ms
+  const elapsed = now - (u.lastClaim || 0);
+  if (elapsed < cooldown) {
+    const remaining = cooldown - elapsed;
+    const hrs = Math.floor(remaining / 3600000);
+    const mins = Math.floor((remaining % 3600000) / 60000);
+    return ctx.reply(`⏳ Already claimed today! Come back in ${hrs}h ${mins}m.\nComplete your missions first: /missions`);
+  }
+  u.lastClaim = now;
   u.xp += 10;
-  ctx.reply(`✅ +10 XP | Total: ${u.xp}`);
+  ctx.reply(`✅ +10 XP claimed! Total: ${u.xp} XP\nSee you tomorrow for more missions! 🐺`);
 });
 
 bot.command('xp', (ctx) => {
