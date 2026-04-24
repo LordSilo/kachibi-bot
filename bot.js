@@ -8,7 +8,7 @@ const path = require('path');
 if (!process.env.BOT_TOKEN) throw new Error('BOT_TOKEN missing');
 
 const bot = new Telegraf(process.env.BOT_TOKEN);
-bot.use(session());
+bot.use(session({ defaultSession: () => ({ template: 'classic' }) }));
 
 const users = new Map();
 
@@ -74,7 +74,7 @@ bot.command('leaderboard', (ctx) => {
 bot.command('template', (ctx) => {
   const name = ctx.message.text.replace('/template', '').trim().toLowerCase();
   if (!templates[name]) return ctx.reply('Templates: classic, throne, moon, laser');
-  ctx.session.template = name;
+  if (!ctx.session) ctx.session = {}; ctx.session.template = name;
   ctx.reply(`🎨 Template set: ${name}`);
 });
 
@@ -82,7 +82,7 @@ bot.command('meme', async (ctx) => {
   try {
     const text = ctx.message.text.replace('/meme', '').trim();
     if (!text) return ctx.reply('Use: /meme your caption');
-    const chosen = ctx.session.template || 'classic';
+    const chosen = (ctx.session && ctx.session.template) || 'classic';
     const out = await makeMeme(templates[chosen], text);
     const u = getUser(ctx.from.id, ctx.from.first_name);
     u.xp += 5;
