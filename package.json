@@ -1,0 +1,12 @@
+{
+  "name": "kachibi-bot",
+  "version": "1.0.0",
+  "main": "bot.js",
+  "dependencies": {
+    "dotenv": "^16.0.0",
+    "telegraf": "^4.0.0"
+  },
+  "scripts": {
+    "start": "node bot.js"
+  }
+}
