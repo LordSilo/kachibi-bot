@@ -16,19 +16,19 @@ const users = new Map();
 const templates = {
   classic: {
     file: 'kachibi.png',
-    box: { x: 56, y: 220, w: 450, h: 195 }   // white speech bubble
+    box: { x: 56, y: 220, w: 450, h: 195 }
   },
   throne: {
     file: 'throne.png',
-    box: { x: 375, y: 230, w: 300, h: 210 }   // white rectangular frame (right side)
+    box: { x: 375, y: 230, w: 300, h: 210 }
   },
   moon: {
     file: 'moon.png',
-    box: { x: 48, y: 248, w: 338, h: 200 }    // white rectangular frame (left-center)
+    box: { x: 48, y: 248, w: 338, h: 200 }
   },
   laser: {
     file: 'laser.png',
-    box: { x: 35, y: 238, w: 365, h: 210 }    // white rectangular frame (left side)
+    box: { x: 35, y: 238, w: 365, h: 210 }
   }
 };
 
@@ -39,7 +39,6 @@ function getUser(id, name) {
 
 function rand(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 
-// Wrap text into lines that fit within maxWidth
 function wrapText(ctx, text, maxWidth) {
   const words = text.split(' ');
   const lines = [];
@@ -60,15 +59,12 @@ function wrapText(ctx, text, maxWidth) {
 async function makeMeme(templateKey, text) {
   const tmpl = templates[templateKey] || templates.classic;
   const img = await loadImage(path.join(__dirname, 'templates', tmpl.file));
-
-  // Draw at native image size to keep aspect ratio
   const imgW = img.width || 701;
   const imgH = img.height || 561;
   const canvas = createCanvas(imgW, imgH);
   const c = canvas.getContext('2d');
   c.drawImage(img, 0, 0, imgW, imgH);
 
-  // Text box coords
   const { x, y, w, h } = tmpl.box;
   const padding = 12;
   const innerX = x + padding;
@@ -76,7 +72,6 @@ async function makeMeme(templateKey, text) {
   const innerW = w - padding * 2;
   const innerH = h - padding * 2;
 
-  // Auto-size font to fit text in box
   let fontSize = 38;
   let lines;
   do {
@@ -91,7 +86,6 @@ async function makeMeme(templateKey, text) {
   const totalTextH = lines.length * lineH;
   const startY = innerY + (innerH - totalTextH) / 2 + fontSize;
 
-  // Draw text in dark color for readability on white box
   c.font = `bold ${fontSize}px Arial`;
   c.fillStyle = '#111111';
   c.strokeStyle = 'rgba(255,255,255,0.4)';
@@ -196,5 +190,7 @@ bot.command('randommeme', async (ctx) => {
 
 bot.command('contest', (ctx) => ctx.reply('🏆 Meme contest entered! Post with #KachibiMeme'));
 
-bot.launch();
-console.log('Kachibi Bot v3 Live - Template text boxes active');
+// Graceful shutdown - prevents 409 Conflict on redeploy
+bot.launch().then(() => console.log('Kachibi Bot v3 Live'));
+process.once('SIGINT', () => bot.stop('SIGINT'));
+process.once('SIGTERM', () => bot.stop('SIGTERM'));
